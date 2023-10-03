@@ -257,6 +257,43 @@ func TestCalledWith(t *testing.T) {
 		res = m.CalledWith(arg1, arg2)
 		assert.True(t, res)
 	})
+	t.Run("Should be able to compare slices", func(t *testing.T) {
+		m := NewMock()
+		sliceArg := []string{"1", "2", "3"}
+
+		m.calls = []MockCall{
+			{Args: []any{sliceArg}},
+		}
+
+		res := m.CalledWith(sliceArg)
+		assert.True(t, res)
+
+		res = m.CalledWith([]string{"3", "2", "1"})
+		assert.False(t, res)
+
+		res = m.CalledWith(20)
+		assert.False(t, res)
+	})
+	t.Run("Should be able to compare maps", func(t *testing.T) {
+		m := NewMock()
+		mapArg := map[string]int{"1": 3, "2": 4, "3": 5}
+
+		m.calls = []MockCall{
+			{Args: []any{mapArg}},
+		}
+
+		res := m.CalledWith(mapArg)
+		assert.True(t, res)
+
+		res = m.CalledWith(map[string]int{"3": 5, "2": 4, "1": 3})
+		assert.True(t, res)
+
+		res = m.CalledWith(map[string]int{"3": 5, "2": 4})
+		assert.False(t, res)
+
+		res = m.CalledWith(20)
+		assert.False(t, res)
+	})
 }
 
 func TestCalledWithExactly(t *testing.T) {
@@ -320,6 +357,43 @@ func TestCalledWithExactly(t *testing.T) {
 		}
 		res = m.CalledWithExactly(arg1, arg2)
 		assert.True(t, res)
+	})
+	t.Run("Should be able to compare slices", func(t *testing.T) {
+		m := NewMock()
+		sliceArg := []string{"1", "2", "3"}
+
+		m.calls = []MockCall{
+			{Args: []any{sliceArg}},
+		}
+
+		res := m.CalledWithExactly(sliceArg)
+		assert.True(t, res)
+
+		res = m.CalledWithExactly([]string{"3", "2", "1"})
+		assert.False(t, res)
+
+		res = m.CalledWithExactly(20)
+		assert.False(t, res)
+	})
+	t.Run("Should be able to compare maps", func(t *testing.T) {
+		m := NewMock()
+		mapArg := map[string]int{"1": 3, "2": 4, "3": 5}
+
+		m.calls = []MockCall{
+			{Args: []any{mapArg}},
+		}
+
+		res := m.CalledWithExactly(mapArg)
+		assert.True(t, res)
+
+		res = m.CalledWithExactly(map[string]int{"3": 5, "2": 4, "1": 3})
+		assert.True(t, res)
+
+		res = m.CalledWithExactly(map[string]int{"3": 5, "2": 4})
+		assert.False(t, res)
+
+		res = m.CalledWithExactly(20)
+		assert.False(t, res)
 	})
 }
 

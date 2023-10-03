@@ -198,6 +198,43 @@ func TestMethodCalledWith(t *testing.T) {
 		mock.RegisterMethodCall("MyFunc1", arg1, arg2, "anotherArg")
 		assert.True(t, method1.CalledWith(arg2, arg1))
 	})
+	t.Run("Should be able to compare slices", func(t *testing.T) {
+		mock := NewMock()
+		method := mock.Method("MyFunc1")
+
+		sliceArg := []string{"1", "2", "3"}
+
+		mock.RegisterMethodCall("MyFunc1", sliceArg)
+
+		res := method.CalledWith(sliceArg)
+		assert.True(t, res)
+
+		res = method.CalledWith([]string{"3", "2", "1"})
+		assert.False(t, res)
+
+		res = method.CalledWith(20)
+		assert.False(t, res)
+	})
+	t.Run("Should be able to compare maps", func(t *testing.T) {
+		mock := NewMock()
+		method := mock.Method("MyFunc1")
+
+		mapArg := map[string]int{"1": 3, "2": 4, "3": 5}
+
+		mock.RegisterMethodCall("MyFunc1", mapArg)
+
+		res := method.CalledWith(mapArg)
+		assert.True(t, res)
+
+		res = method.CalledWith(map[string]int{"3": 5, "2": 4, "1": 3})
+		assert.True(t, res)
+
+		res = method.CalledWith(map[string]int{"3": 5, "2": 4})
+		assert.False(t, res)
+
+		res = method.CalledWith(20)
+		assert.False(t, res)
+	})
 }
 
 func TestMethodCalledWithExactly(t *testing.T) {
@@ -247,5 +284,42 @@ func TestMethodCalledWithExactly(t *testing.T) {
 
 		assert.True(t, method1.CalledWithExactly(arg1, arg2))
 		assert.True(t, method2.CalledWithExactly(arg2, "someOtherArg"))
+	})
+	t.Run("Should be able to compare slices", func(t *testing.T) {
+		mock := NewMock()
+		method := mock.Method("MyFunc1")
+
+		sliceArg := []string{"1", "2", "3"}
+
+		mock.RegisterMethodCall("MyFunc1", sliceArg)
+
+		res := method.CalledWithExactly(sliceArg)
+		assert.True(t, res)
+
+		res = method.CalledWithExactly([]string{"3", "2", "1"})
+		assert.False(t, res)
+
+		res = method.CalledWithExactly(20)
+		assert.False(t, res)
+	})
+	t.Run("Should be able to compare maps", func(t *testing.T) {
+		mock := NewMock()
+		method := mock.Method("MyFunc1")
+
+		mapArg := map[string]int{"1": 3, "2": 4, "3": 5}
+
+		mock.RegisterMethodCall("MyFunc1", mapArg)
+
+		res := method.CalledWithExactly(mapArg)
+		assert.True(t, res)
+
+		res = method.CalledWithExactly(map[string]int{"3": 5, "2": 4, "1": 3})
+		assert.True(t, res)
+
+		res = method.CalledWithExactly(map[string]int{"3": 5, "2": 4})
+		assert.False(t, res)
+
+		res = method.CalledWithExactly(20)
+		assert.False(t, res)
 	})
 }
