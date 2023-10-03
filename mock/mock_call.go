@@ -1,5 +1,7 @@
 package mock
 
+import "reflect"
+
 // MockCall represents a mock call, with the call arguments
 type MockCall struct {
 	MethodName string
@@ -9,7 +11,7 @@ type MockCall struct {
 // HasArgument checks if a mock call arguments contains a specific argument
 func (mc *MockCall) HasArgument(arg any) bool {
 	for _, a := range mc.Args {
-		if a == arg {
+		if reflect.DeepEqual(a, arg) {
 			return true
 		}
 	}

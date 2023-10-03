@@ -1,5 +1,7 @@
 package mock
 
+import "reflect"
+
 // method represents a mock use information, but filtered for a specific method
 type method struct {
 	name string
@@ -85,7 +87,7 @@ func (m *method) CalledWithExactly(args ...any) bool {
 
 		hasExactArgs := true
 		for i, callArg := range call.Args {
-			if args[i] != callArg {
+			if !reflect.DeepEqual(args[i], callArg) {
 				hasExactArgs = false
 				break
 			}
