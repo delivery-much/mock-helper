@@ -323,3 +323,48 @@ func TestMethodCalledWithExactly(t *testing.T) {
 		assert.False(t, res)
 	})
 }
+
+func TestResponseWithArgs(t *testing.T) {
+	t.Run("Should consider the method args correctly when returning a response", func(t *testing.T) {
+		type test struct {
+			val1 string
+			val2 bool
+			val3 int
+		}
+
+		type test2 struct {
+			val1 string
+			val2 bool
+			val3 int
+		}
+
+		mock := NewMock()
+		method := mock.Method("MyMethod")
+
+		return1 := "MOCKRETURN1"
+		return2 := "MOCKRETURN2"
+		return3 := "MOCKRETURN3"
+		return4 := "MOCKRETURN4"
+
+		method.WithArgs(1, "20", test{"test", true, 40}, map[string]int{"aaa": 45}).Returns(return1)
+		method.WithArgs(1, test{"other test", true, 30}, map[string]int{"bbb": 12}).Returns(return2)
+		method.WithArgs(1, test2{"other test", true, 30}, map[string]int{"bbb": 12}).Returns(return3)
+		method.SetResponse(return4)
+
+		response1 := method.GetResponse(1, "20", test{"test", true, 40}, map[string]int{"aaa": 45})
+		assert.False(t, response1.IsEmpty())
+		assert.Equal(t, return1, response1.Get(0))
+
+		response2 := method.GetResponse(1, test{"other test", true, 30}, map[string]int{"bbb": 12})
+		assert.False(t, response2.IsEmpty())
+		assert.Equal(t, return2, response2.Get(0))
+
+		response3 := method.GetResponse(1, test2{"other test", true, 30}, map[string]int{"bbb": 12})
+		assert.False(t, response3.IsEmpty())
+		assert.Equal(t, return3, response3.Get(0))
+
+		response4 := method.GetResponse()
+		assert.False(t, response4.IsEmpty())
+		assert.Equal(t, return4, response4.Get(0))
+	})
+}

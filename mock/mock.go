@@ -22,12 +22,21 @@ func NewMock() Mock {
 // of the same type and are in the same order as the method
 // response specified in the method signature
 func (mock *Mock) SetMethodResponse(methodName string, response ...any) {
-	mock.responses[methodName] = response
+	if mock.responses != nil {
+		mock.responses[methodName] = response
+	}
 }
 
 // GetMethodResponse gets the specified response for a method
-func (mock *Mock) GetMethodResponse(methodName string) methodResponse {
-	return mock.responses[methodName]
+func (mock *Mock) GetMethodResponse(methodName string, args ...any) (res methodResponse) {
+	key := mountResponseKey(methodName, args...)
+
+	res = mock.responses[key]
+	if res.IsEmpty() {
+		res = mock.responses[methodName]
+	}
+
+	return
 }
 
 // RegisterMethodCall registers a method call on a mock given the method name
@@ -37,6 +46,16 @@ func (mock *Mock) RegisterMethodCall(methodName string, args ...any) {
 		MethodName: methodName,
 		Args:       args,
 	})
+}
+
+// GetResponseAndRegister it's equivalent of calling RegisterMethodCall and GetMethodResponse subsequently.
+//
+// It gets the specified response for a method, given the method name and the args,
+// and also registers a method call given those args.
+func (mock *Mock) GetResponseAndRegister(methodName string, args ...any) (res methodResponse) {
+	mock.RegisterMethodCall(methodName, args...)
+
+	return mock.GetMethodResponse(methodName, args...)
 }
 
 // GetCalls returns the mock calls

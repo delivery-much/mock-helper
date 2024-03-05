@@ -37,10 +37,14 @@ It aims to combine stretchr's strategy to create mocks, with the readability fro
     - [func CalledTimes](#func-calledtimes-1)
     - [func CalledWith](#func-calledwith-1)
     - [func CalledWithExactly](#func-calledwithexactly-1)
+    - [func CalledWithExactly](#func-calledwithexactly-1)
   - [MethodResponse](#methodresponse)
-    - [func Get](#func-get-1)
+    - [func IsEmpty](#func-isempty)
+    - [func Get](#func-get)
     - [func GetString](#func-getstring)
     - [func GetInt](#func-getint)
+    - [func GetFloat32](#func-getfloat32)
+    - [func GetFloat64](#func-getfloat64)
     - [func GetError](#func-geterror)
 
 ## Setup
@@ -98,10 +102,10 @@ func (m *InterfaceMock) GetUserCount(userID string) (c int, err error) {
   // Register the method call with the correct parameters
   m.RegisterMethodCall("GetUserCount", userID)
 
-  // Gets the method response that was specified on the tests, if any
-  res := m.GetMethodResponse("GetUserCount")
+  // Gets the method response that was specified on the tests, given the method name and the parameters.
+  res := m.GetMethodResponse("GetUserCount", userID)
 
-  if len(res) == 0 {
+  if res.IsEmpty() {
     // if no response was specified, returns the default values
     return
   }
@@ -203,7 +207,8 @@ func MyTest() {
 
 #### func GetMethodResponse
 
-The GetMethodResponse function returns the response that was specified for the method with the given name.
+The GetMethodResponse function returns the response that was specified for the method 
+with the given method name and the call arguments, if any response with specific arguments was specified.
 
 This method will return a [MethodResponse](#methodresponse). This response will be empty if no response was specified for the method, or will contain the response values for that method.
 
@@ -221,10 +226,14 @@ func MyTest() {
   m := MyMock{
     mock.NewMock(),
   }
+  method1 := m.Method("MyMethod1")
+  method2 := m.Method("MyMethod2")
 
-  m.SetMethodResponse("MyMethod1", 10, "something")
+  method1.SetResponse(10, "something")
+  method1.WithArgs("MY ARG!").Returns(20, "something else")
 
   m.GetMethodResponse("MyMethod1") // Should return [10, "something"]
+  m.GetMethodResponse("MyMethod1", "MY ARG!") // Should return [20, "something else"]
   m.GetMethodResponse("MyMethod2") // Should return []
 }
 ```
@@ -234,7 +243,7 @@ func MyTest() {
 
 The RegisterMethodCall function registers a mock method call.
 
-It receives the method name and the params that where passed on that method call, and registers that information inside the mock to be used later.
+It receives the method name and the args that where passed on that method call, and registers that information inside the mock to be used later.
 
 Example usage:
 ```go
@@ -253,6 +262,32 @@ func (m *MyMock) MyMockFunc(param1 string, param2 int) {
 }
 ```
 **Note:** It's imperative that the RegisterMethodCall its used correctly, with the correct function name and the correct parameters, so that later, in the tests, the assertions can be made safely and avoid false negatives or positives.
+
+#### func GetResponseAndRegister
+
+Both the `RegisterMethodCall` and `GetMethodResponse` functions receive the same parameters, the method name, and the parameters received by the method.
+The `GetResponseAndRegister` function combines these methods in one.
+
+With this function, you can simplify your mock implementation as such:
+```go
+import (
+  "github.com/delivery-much/mock-helper/mock"
+)
+
+type MyMock struct {
+  mock.Mock
+}
+
+func (m *MyMock) MyMockFunc(param1 string, param2 int) error {
+  res := m.GetResponseAndRegister("MyMockFunc", param1, param2)
+  if res.IsEmpty() {
+    return
+  }
+
+  return res.GetError(0)
+}
+```
+
 
 #### func GetCalls
 
@@ -728,10 +763,61 @@ func MyTest() {
 }
 ```
 
+#### func WithArgs...Returns
+The WithArgs combined with the Returns function inside a method allows the developer to specify a response for a specific set of arguments.
+When the specified mock method is called with those arguments, the mock will return that specific respose.
+
+Example usage:
+```go
+import (
+  "github.com/delivery-much/mock-helper/mock"
+)
+
+type MyMock struct {
+  mock.Mock
+}
+
+func MyTest() {
+  mock := MyMock{
+    mock.NewMock(),
+  }
+  m := mock.Method("MyMethod")
+  
+  m.WithArgs("param1", 42).Returns("my specified return!!")
+  m.SetResponse("a default response")
+
+
+  mock.MyMethod("param1", 42) // Returns "my specified return!!" 
+  mock.MyMethod("some other param", 12) // Returns "a default response" 
+}
+```
+
+> **Note:** For this function to work properly, you must specify the params when the mock is called, either via [RegisterMethodCall](#func-registermethodcall) or [GetResponseAndRegister](#func-getresponseandregister) functions.
+
 ### MethodResponse
 
 The `MethodResponse` type represents a response that a mock method should return. 
 It provides methods for retrieving specific types of response values from the method response.
+
+#### func IsEmpty
+
+The `IsEmpty` function it's a helper function to check if the method response is empty.
+
+Example usage:
+```go
+import (
+  "github.com/delivery-much/mock-helper/mock"
+)
+
+func main() {
+  response := mock.MethodResponse{}
+  response.IsEmpty() // Returns true
+
+
+  response := mock.MethodResponse{42, "PARAM"}
+  response.IsEmpty() // Returns false
+}
+```
 
 #### func Get
 
@@ -789,6 +875,48 @@ func main() {
   value := response.GetInt(0) // Returns 42
   value2 := response.GetInt(1) // Panics!!! (since "test" is not a integer)
   value2 := response.GetInt(2) // Panics!!! (since there is no value on the index 2)
+}
+```
+
+> You can also get integer values from specific byte sizes using the `GetInt8`, `GetInt16`, `GetInt32` and `GetInt64` functions!
+
+#### func GetFloat32
+
+The GetFloat32 function returns a float32 value specified in the method response at the given index. 
+It panics if no response value is found on the specified index or if the value type is not a integer.
+
+Example usage:
+```go
+import (
+  "github.com/delivery-much/mock-helper/mock"
+)
+
+func main() {
+  response := mock.MethodResponse{float32(42.3), "test"}
+  
+  value := response.GetFloat32(0) // Returns 42.3
+  value2 := response.GetFloat32(1) // Panics!!! (since "test" is not a float32)
+  value2 := response.GetFloat32(2) // Panics!!! (since there is no value on the index 2)
+}
+```
+
+#### func GetFloat64
+
+The GetFloat64 function returns a float64 value specified in the method response at the given index. 
+It panics if no response value is found on the specified index or if the value type is not a integer.
+
+Example usage:
+```go
+import (
+  "github.com/delivery-much/mock-helper/mock"
+)
+
+func main() {
+  response := mock.MethodResponse{float64(42.3), "test"}
+  
+  value := response.GetFloat64(0) // Returns 42.3
+  value2 := response.GetFloat64(1) // Panics!!! (since "test" is not a float64)
+  value2 := response.GetFloat64(2) // Panics!!! (since there is no value on the index 2)
 }
 ```
 

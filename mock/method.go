@@ -15,14 +15,14 @@ type method struct {
 // response specified in the method signature
 func (m *method) SetResponse(response ...any) {
 	if m.mock != nil {
-		m.mock.responses[m.name] = response
+		m.mock.SetMethodResponse(m.name, response...)
 	}
 }
 
 // GetResponse gets the specified response for the method
-func (m *method) GetResponse() (res methodResponse) {
+func (m *method) GetResponse(args ...any) (res methodResponse) {
 	if m.mock != nil {
-		res = m.mock.responses[m.name]
+		res = m.mock.GetMethodResponse(m.name, args...)
 	}
 
 	return
@@ -99,4 +99,26 @@ func (m *method) CalledWithExactly(args ...any) bool {
 	}
 
 	return false
+}
+
+type withArgsDef struct {
+	method *method
+	args   []any
+}
+
+// WithArgs sets the args that the method will use to return a specific response when receiving those args.
+//
+// Call the `Returns` method subsequently to set a method response with specific args
+func (m *method) WithArgs(args ...any) withArgsDef {
+	return withArgsDef{
+		method: m,
+		args:   args,
+	}
+}
+
+func (d withArgsDef) Returns(response ...any) {
+	if d.method != nil && d.method.mock != nil && d.method.mock.responses != nil {
+		key := mountResponseKey(d.method.name, d.args...)
+		d.method.mock.responses[key] = response
+	}
 }

@@ -88,6 +88,150 @@ func TestGetInt(t *testing.T) {
 	})
 }
 
+func TestGetInt8(t *testing.T) {
+	mr := methodResponse{int8(42), "value2"}
+
+	t.Run("Should panic with correct message if the index value is not an int", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int8 value on the index 1 of the mock method response, but the index value was not an int8",
+			func() {
+				_ = mr.GetInt8(1)
+			},
+		)
+	})
+	t.Run("Should panic with correct message if the index has no value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int8 value on the index 2 of the mock method response, but the index had no value",
+			func() {
+				_ = mr.GetInt8(2)
+			},
+		)
+	})
+	t.Run("Should return the correct value if the index value is an int", func(t *testing.T) {
+		assert.Equal(t, int8(42), mr.GetInt8(0))
+	})
+}
+
+func TestGetInt16(t *testing.T) {
+	mr := methodResponse{int16(42), "value2"}
+
+	t.Run("Should panic with correct message if the index value is not an int", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int16 value on the index 1 of the mock method response, but the index value was not an int16",
+			func() {
+				_ = mr.GetInt16(1)
+			},
+		)
+	})
+	t.Run("Should panic with correct message if the index has no value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int16 value on the index 2 of the mock method response, but the index had no value",
+			func() {
+				_ = mr.GetInt16(2)
+			},
+		)
+	})
+	t.Run("Should return the correct value if the index value is an int", func(t *testing.T) {
+		assert.Equal(t, int16(42), mr.GetInt16(0))
+	})
+}
+
+func TestGetInt32(t *testing.T) {
+	mr := methodResponse{int32(42), "value2"}
+
+	t.Run("Should panic with correct message if the index value is not an int", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int32 value on the index 1 of the mock method response, but the index value was not an int32",
+			func() {
+				_ = mr.GetInt32(1)
+			},
+		)
+	})
+	t.Run("Should panic with correct message if the index has no value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int32 value on the index 2 of the mock method response, but the index had no value",
+			func() {
+				_ = mr.GetInt32(2)
+			},
+		)
+	})
+	t.Run("Should return the correct value if the index value is an int", func(t *testing.T) {
+		assert.Equal(t, int32(42), mr.GetInt32(0))
+	})
+}
+
+func TestGetInt64(t *testing.T) {
+	mr := methodResponse{int64(42), "value2"}
+
+	t.Run("Should panic with correct message if the index value is not an int", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int64 value on the index 1 of the mock method response, but the index value was not an int64",
+			func() {
+				_ = mr.GetInt64(1)
+			},
+		)
+	})
+	t.Run("Should panic with correct message if the index has no value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a int64 value on the index 2 of the mock method response, but the index had no value",
+			func() {
+				_ = mr.GetInt64(2)
+			},
+		)
+	})
+	t.Run("Should return the correct value if the index value is an int", func(t *testing.T) {
+		assert.Equal(t, int64(42), mr.GetInt64(0))
+	})
+}
+
+func TestGetFloat32(t *testing.T) {
+	mr := methodResponse{float32(42), "value2"}
+
+	t.Run("Should panic with correct message if the index value is not an int", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a float32 value on the index 1 of the mock method response, but the index value was not an float32",
+			func() {
+				_ = mr.GetFloat32(1)
+			},
+		)
+	})
+	t.Run("Should panic with correct message if the index has no value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a float32 value on the index 2 of the mock method response, but the index had no value",
+			func() {
+				_ = mr.GetFloat32(2)
+			},
+		)
+	})
+	t.Run("Should return the correct value if the index value is an int", func(t *testing.T) {
+		assert.Equal(t, float32(42), mr.GetFloat32(0))
+	})
+}
+
+func TestGetFloat64(t *testing.T) {
+	mr := methodResponse{float64(42), "value2"}
+
+	t.Run("Should panic with correct message if the index value is not an int", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a float64 value on the index 1 of the mock method response, but the index value was not an float64",
+			func() {
+				_ = mr.GetFloat64(1)
+			},
+		)
+	})
+	t.Run("Should panic with correct message if the index has no value", func(t *testing.T) {
+		assert.PanicsWithValue(t,
+			"Tried to find a float64 value on the index 2 of the mock method response, but the index had no value",
+			func() {
+				_ = mr.GetFloat64(2)
+			},
+		)
+	})
+	t.Run("Should return the correct value if the index value is an int", func(t *testing.T) {
+		assert.Equal(t, float64(42), mr.GetFloat64(0))
+	})
+}
+
 func TestMethodResponseGetError(t *testing.T) {
 	err := fmt.Errorf("error")
 	mr := methodResponse{err, "value2", nil}
