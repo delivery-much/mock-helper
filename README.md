@@ -38,6 +38,7 @@ It aims to combine stretchr's strategy to create mocks, with the readability fro
     - [func CalledWith](#func-calledwith-1)
     - [func CalledWithExactly](#func-calledwithexactly-1)
     - [func CalledWithExactly](#func-calledwithexactly-1)
+    - [func WithArgs...Returns](#func-withargsreturns)
   - [MethodResponse](#methodresponse)
     - [func IsEmpty](#func-isempty)
     - [func Get](#func-get)
