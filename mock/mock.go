@@ -1,7 +1,5 @@
 package mock
 
-import "reflect"
-
 // Mock represents a mock and its use information
 type Mock struct {
 	responses map[string]methodResponse
@@ -107,7 +105,7 @@ func (mock *Mock) CalledWithExactly(args ...any) bool {
 
 		hasExactArgs := true
 		for i, callArg := range call.Args {
-			if !reflect.DeepEqual(args[i], callArg) {
+			if !argsAreEqual(args[i], callArg) {
 				hasExactArgs = false
 				break
 			}

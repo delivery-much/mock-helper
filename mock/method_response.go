@@ -1,6 +1,8 @@
 package mock
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // methodResponse represents a response that a mock method should return
 type methodResponse []any

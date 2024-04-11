@@ -15,3 +15,15 @@ func mountResponseKey(name string, args ...any) (res string) {
 
 	return
 }
+
+// argsAreEqual matches two mock arguments to see if they are equal.
+// matchArg its the value to match.
+// usedArg its the argument that was actually used in the mock call
+func argsAreEqual(matchArg, usedArg any) bool {
+	matcher, ok := matchArg.(ArgumentMatcher)
+	if ok {
+		return matcher.Match(usedArg)
+	}
+
+	return reflect.DeepEqual(matchArg, usedArg)
+}
