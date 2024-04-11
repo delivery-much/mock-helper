@@ -47,6 +47,11 @@ It aims to combine stretchr's strategy to create mocks, with the readability fro
     - [func GetFloat32](#func-getfloat32)
     - [func GetFloat64](#func-getfloat64)
     - [func GetError](#func-geterror)
+  - [Built-in assertions](#built-in-assertions)
+  - [Argument matchers](#argument-matchers)
+    - [Match any](#match-any)
+    - [Match type](#match-type)
+    - [Custom matchers](#custom-matchers)
 
 ## Setup
 To download mock-helper and add it to your project, just run:
@@ -118,36 +123,39 @@ func (m *InterfaceMock) GetUserCount(userID string) (c int, err error) {
 
 And then test your function, like this:
 ```go
-dbMock := NewDBMock()
-// set the mock response
-dbMock.Method("GetUserCount").SetResponse(5, nil)
+func TestGetCount(t *testing.T) {
+  dbMock := NewDBMock()
+  // set the mock response
+  dbMock.Method("GetUserCount").SetResponse(5, nil)
 
-userID := "mockUserID"
+  userID := "mockUserID"
 
-// call your function
-c, err := GetCount(dbMock, userID)
+  // call your function
+  c, err := GetCount(dbMock, userID)
 
-// make your assertions
-assert.Equal(t, 5, c)
-assert.Nil(t, err)
-assert.True(t, dbMock.CalledOnce())
-assert.True(t, dbMock.CalledWith(userID))
+  // make your assertions
+  assert.Equal(t, 5, c)
+  dbMock.
+    AssertCalledOnce(t).
+    AssertCalledWith(t, userID)
 
-// reset the mock
-dbMock.Reset()
+  // reset the mock
+  dbMock.Reset()
 
-// set the mock response (this time with an error)
-mockErr := errors.New("Mock error")
-dbMock.Method("GetUserCount").SetResponse(5, mockErr)
+  // set the mock response (this time with an error)
+  mockErr := errors.New("Mock error")
+  dbMock.Method("GetUserCount").SetResponse(5, mockErr)
 
-// call your function
-c, err = GetCount(dbMock, userID)
+  // call your function
+  c, err = GetCount(dbMock, userID)
 
-// make your assertions
-assert.Equal(t, 0, c)
-assert.Equal(t, mockErr, err)
-assert.True(t, dbMock.CalledOnce())
-assert.True(t, dbMock.CalledWith(userID))
+  // make your assertions
+  assert.Equal(t, 0, c)
+  assert.Equal(t, mockErr, err)
+  dbMock.
+    AssertCalledOnce(t).
+    AssertCalledWith(t, userID)
+}
 ```
 
 This way you can easily mock your interfaces and assert that they where called the correct way, and their return value where used correctly.
@@ -942,3 +950,113 @@ func main() {
   value2 := response.GetError(3) // Panics!!! (since there is no value on the index 3)
 }
 ```
+
+### Built-in assertions
+
+Both the mock and the method structs have helper test functions that assert it's usage:
+
+- `AssertCalledWith` -> asserts that the mock or method was called with a specific set of params (se [func CalledWith](#func-calledwith) for more)
+- `AssertCalledWithExactly` -> asserts that the mock or method was called with a exactly specific set of params (se [func CalledWithExactly](#func-calledwithexactly) for more)
+- `AssertCalled` -> asserts that the mock or method was called at least once (se [func Called](#func-called) for more)
+- `AssertCalledOnce` -> asserts that the mock or method was called exactly once (se [func CalledOnce](#func-calledonce) for more)
+- `AssertCalledTimes` -> asserts that the mock or method was called a specific number of times (se [func CalledTimes](#func-calledtimes) for more)
+
+In addition, these assertions can be chained to make your tests more readable.
+
+Ex.:
+```go
+func TestMock(t *testing.T) {
+  myMock := NewMock()
+
+  ... // make your test case
+
+  // make your mock assertions
+  myMock.
+    AssertCalledTimes(t, 2).
+    AssertCalledWith(t, "mock param")
+
+  // make your method assertions
+  myMock.
+    Method("MySpecificMethod").
+    AssertCalledTimes(t, 2).
+    AssertCalledWith(t, "mock param")
+}
+```
+
+When using these assertion functions, in case an assertion fail, the test will fail with a message specifying wath happened exactly.
+
+### Argument matchers
+
+Sometimes when using the [CalledWith](#func-calledwith) or the [CalledWithExactly](#func-calledwithexactly) functions, 
+it's a real pain to match certain types of values.
+
+For instance, if you want to assert that a method was called with a date, 
+or if you simply want to assert that the mock was called with any value, you can use argument matchers!
+
+An argument matcher is a helper struct that allows the user to specify what the library should do when comparing the expected value to the value that was used in the mock call.
+
+
+#### Match any
+
+The `MatchAny` it's an argument matcher provided by this library, that will allow the user to match any value.
+
+For instance, let's say that you want to assert that your mock was called with exactly three parameters,
+but only the value of the first parameter is important to match.
+
+You could do something like this:
+```go
+func TestMock(t *testing.T) {
+  myMock := mock.NewMock()
+
+  ... // make your test case
+
+  // make your mock assertions
+  myMock.
+    AssertCalledWithExactly(
+      t,
+      "mock param",
+      mock.MatchAny,
+      mock.MatchAny,
+    )
+}
+```
+
+#### Match type
+
+The `MatchType` is an argument matcher provided by this library that allows the user to match values by their type.
+
+For instance, let's say you want to assert that your mock was called with a date. 
+It can be challenging to match the date exactly, especially because the parameter often becomes time-sensitive.
+
+You could do something like this:
+```go
+func TestMock(t *testing.T) {
+  myMock := mock.NewMock()
+
+  ... // make your test case
+
+  // make your mock assertions
+  myMock.
+    AssertCalledWith(
+      t,
+      mock.MatchType[time.Time],
+    )
+}
+```
+
+The `MatchType` matcher receives a type param, that specifies what type that parameter should be.
+
+#### Custom matchers
+
+Users can also create their custom argument matcher structs, as long as the struct implements the `ArgumentMatcher` interface:
+
+```go
+type ArgumentMatcher interface {
+	Match(arg any) bool
+}
+```
+
+All they need to do is implement a struct that has a function `Match`, which receives an argument of type `any` and returns a `bool`. 
+The function must return `true` if the argument matches, or `false` otherwise.
+
+Then, just pass that struct to the assertion method, and you're good to Go!
