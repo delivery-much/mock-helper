@@ -1,5 +1,7 @@
 package mock
 
+import "testing"
+
 // Mock represents a mock and its use information
 type Mock struct {
 	responses map[string]methodResponse
@@ -61,12 +63,12 @@ func (mock *Mock) GetCalls() []MockCall {
 	return mock.calls
 }
 
-// Called checks if the mock was called
+// Called returns if the mock was called
 func (mock *Mock) Called() bool {
 	return len(mock.calls) > 0
 }
 
-// CalledOnce checks if a mock was called exactly once
+// CalledOnce returns if a mock was called exactly once
 func (mock *Mock) CalledOnce() bool {
 	return len(mock.calls) == 1
 }
@@ -76,47 +78,15 @@ func (mock *Mock) CalledTimes(n int) bool {
 	return len(mock.calls) == n
 }
 
-// CalledWith checks if the mock was called at least once with the specified arguments
+// CalledWith returns if the mock was called at least once with the specified arguments
 func (mock *Mock) CalledWith(args ...any) bool {
-	for _, call := range mock.calls {
-		hasArgs := true
-		for _, arg := range args {
-			if !call.HasArgument(arg) {
-				hasArgs = false
-				break
-			}
-		}
-
-		if hasArgs {
-			return true
-		}
-	}
-
-	return false
+	return checkCalledWith(mock.calls, args...)
 }
 
-// CalledWithExactly checks if the mock was called at least once with exactly the specified arguments,
+// CalledWithExactly returns if the mock was called at least once with exactly the specified arguments,
 // with the same values and in the same order
 func (mock *Mock) CalledWithExactly(args ...any) bool {
-	for _, call := range mock.calls {
-		if len(args) != len(call.Args) {
-			continue
-		}
-
-		hasExactArgs := true
-		for i, callArg := range call.Args {
-			if !argsAreEqual(args[i], callArg) {
-				hasExactArgs = false
-				break
-			}
-		}
-
-		if hasExactArgs {
-			return true
-		}
-	}
-
-	return false
+	return checkCalledWithExactly(mock.calls, args...)
 }
 
 // Reset resets a mock to an empty state
@@ -129,5 +99,12 @@ func (mock *Mock) Method(name string) *method {
 	return &method{
 		name,
 		mock,
+	}
+}
+
+func (mock *Mock) Assert(t *testing.T) *mockAssertion {
+	return &mockAssertion{
+		t: t,
+		m: mock,
 	}
 }

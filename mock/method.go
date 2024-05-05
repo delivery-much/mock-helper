@@ -1,5 +1,7 @@
 package mock
 
+import "testing"
+
 // method represents a mock use information, but filtered for a specific method
 type method struct {
 	name string
@@ -41,12 +43,12 @@ func (m *method) GetCalls() []MockCall {
 	return calls
 }
 
-// Called checks if the mock method was called
+// Called returns if the mock method was called
 func (m *method) Called() bool {
 	return len(m.GetCalls()) > 0
 }
 
-// CalledOnce checks if a mock method was called exactly once
+// CalledOnce returns if a mock method was called exactly once
 func (m *method) CalledOnce() bool {
 	return len(m.GetCalls()) == 1
 }
@@ -56,47 +58,15 @@ func (m *method) CalledTimes(n int) bool {
 	return len(m.GetCalls()) == n
 }
 
-// CalledWith checks if the mock method was called at least once with the specified arguments
+// CalledWith returns if the mock method was called at least once with the specified arguments
 func (m *method) CalledWith(args ...any) bool {
-	for _, call := range m.GetCalls() {
-		hasArgs := true
-		for _, arg := range args {
-			if !call.HasArgument(arg) {
-				hasArgs = false
-				break
-			}
-		}
-
-		if hasArgs {
-			return true
-		}
-	}
-
-	return false
+	return checkCalledWith(m.GetCalls(), args...)
 }
 
-// CalledWithExactly checks if the mock method was called at least once with exactly the specified arguments,
+// CalledWithExactly returns if the mock method was called at least once with exactly the specified arguments,
 // with the same values and in the same order
 func (m *method) CalledWithExactly(args ...any) bool {
-	for _, call := range m.GetCalls() {
-		if len(args) != len(call.Args) {
-			continue
-		}
-
-		hasExactArgs := true
-		for i, callArg := range call.Args {
-			if !argsAreEqual(args[i], callArg) {
-				hasExactArgs = false
-				break
-			}
-		}
-
-		if hasExactArgs {
-			return true
-		}
-	}
-
-	return false
+	return checkCalledWithExactly(m.GetCalls(), args...)
 }
 
 type withArgsDef struct {
@@ -119,4 +89,9 @@ func (d withArgsDef) Returns(response ...any) {
 		key := mountResponseKey(d.method.name, d.args...)
 		d.method.mock.responses[key] = response
 	}
+}
+
+// Assert will begin a new assertion for the method.
+func (m *method) Assert(t *testing.T) *methodAssertion {
+	return &methodAssertion{t: t, m: m}
 }

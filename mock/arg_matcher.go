@@ -14,15 +14,15 @@ type ArgumentMatcher interface {
 // Use it on CalledWith or CalledWithExactly to match any argument.
 type MatchAny struct{}
 
-func (ma *MatchAny) Match(arg any) (b bool) {
-	return
+func (ma MatchAny) Match(arg any) (b bool) {
+	return true
 }
 
 // MatchType it's an argument matcher that matches any value that's the same type as provided.
 // Use it on CalledWith or CalledWithExactly to match an argument by type.
 type MatchType[T any] struct{}
 
-func (ma *MatchType[T]) Match(arg any) bool {
+func (ma MatchType[T]) Match(arg any) bool {
 	_, ok := arg.(T)
 	return ok
 }

@@ -7,7 +7,7 @@ import (
 // methodResponse represents a response that a mock method should return
 type methodResponse []any
 
-// IsEmpty checks if the method response is empty
+// IsEmpty returns if the method response is empty
 func (mr methodResponse) IsEmpty() bool {
 	return len(mr) <= 0
 }

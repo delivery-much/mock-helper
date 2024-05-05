@@ -953,15 +953,18 @@ func main() {
 
 ### Built-in assertions
 
-Both the mock and the method structs have helper test functions that assert it's usage:
+Both the mock and the method structs have the `Assert` method, that allows the user to assert the mock usage.
+The `Assert` method returns struct that provides a series of functions that can be used to create test cases:
 
-- `AssertCalledWith` -> asserts that the mock or method was called with a specific set of params (se [func CalledWith](#func-calledwith) for more)
-- `AssertCalledWithExactly` -> asserts that the mock or method was called with a exactly specific set of params (se [func CalledWithExactly](#func-calledwithexactly) for more)
-- `AssertCalled` -> asserts that the mock or method was called at least once (se [func Called](#func-called) for more)
-- `AssertCalledOnce` -> asserts that the mock or method was called exactly once (se [func CalledOnce](#func-calledonce) for more)
-- `AssertCalledTimes` -> asserts that the mock or method was called a specific number of times (se [func CalledTimes](#func-calledtimes) for more)
+- `CalledWith` -> asserts that the mock or method was called with a specific set of params (se [func CalledWith](#func-calledwith) for more)
+- `CalledWithExactly` -> asserts that the mock or method was called with a exactly specific set of params (se [func CalledWithExactly](#func-calledwithexactly) for more)
+- `Called` -> asserts that the mock or method was called at least once (se [func Called](#func-called) for more)
+- `CalledOnce` -> asserts that the mock or method was called exactly once (se [func CalledOnce](#func-calledonce) for more)
+- `CalledTimes` -> asserts that the mock or method was called a specific number of times (se [func CalledTimes](#func-calledtimes) for more)
 
-In addition, these assertions can be chained to make your tests more readable.
+Developers can also assert the **negation** of a clausule, using the `Not` function before calling any of the listed functions above.
+
+In addition, these assertions can be chained to make your tests more readable, using the `And` function.
 
 Ex.:
 ```go
@@ -972,14 +975,20 @@ func TestMock(t *testing.T) {
 
   // make your mock assertions
   myMock.
-    AssertCalledTimes(t, 2).
-    AssertCalledWith(t, "mock param")
+    Assert(t).
+    CalledTimes(2).
+    And().
+    CalledWith("mock param").
+    And().Not().
+    CalledWith("invalid param").
 
-  // make your method assertions
+  // you can do the same with a specific method!
   myMock.
     Method("MySpecificMethod").
-    AssertCalledTimes(t, 2).
-    AssertCalledWith(t, "mock param")
+    Assert(t).
+    CalledTimes(1).
+    And().
+    CalledWith("mock param")
 }
 ```
 
@@ -1015,8 +1024,8 @@ func TestMock(t *testing.T) {
     AssertCalledWithExactly(
       t,
       "mock param",
-      mock.MatchAny,
-      mock.MatchAny,
+      mock.MatchAny{},
+      mock.MatchAny{},
     )
 }
 ```
@@ -1039,7 +1048,7 @@ func TestMock(t *testing.T) {
   myMock.
     AssertCalledWith(
       t,
-      mock.MatchType[time.Time],
+      mock.MatchType[time.Time]{},
     )
 }
 ```
